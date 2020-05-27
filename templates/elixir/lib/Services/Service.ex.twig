@@ -1,0 +1,44 @@
+defmodule {{ spec.title | caseUcfirst }}.Services.{{ service.name | caseUcfirst }} do
+  @moduledoc """
+  API calls for all `{{ service.name | caseUcfirst }}`.
+  """
+  alias {{ spec.title | caseUcfirst }}.Client;
+
+  @moduledoc since: "{{ sdk.version }}"
+{% for method in service.methods %}
+   @doc """
+    {{ method.title }}
+
+{% if method.description %}
+    {{ method.description|elixirComment }}
+{% endif %}
+
+    ## Parameters
+      *   `conf` - The `Client` object
+{% for parameter in method.parameters.all %}
+      *   `{{ parameter.name | caseCamel }}` - {{ parameter.description }}
+{% endfor %}
+
+    ## Returns
+      *   `{:ok, data}` on success
+      *   `{:error, info}` on failure
+    """
+  def {{ method.name | caseCamel }}(conf{% for parameter in method.parameters.all %},{{ parameter.name | caseCamel }}{{ parameter | paramDefault }}{% if not loop.last %} {% endif %}{% endfor %}) do
+    # path = "{{ method.path }}"
+    # path = Regex.replace(~r/({% for parameter in method.parameters.path %}{{ '{#{' }}{{ parameter.name | caseCamel }}{{ '}}' }}{% if not loop.last %}|{% endif %}{% endfor %})/, "{{ method.path }}", "\\1")
+    params = %{}
+
+{% for parameter in method.parameters.query %}
+    params = %{"{{ parameter.name | caseCamel }}" => "{{ '#{' }}{{ parameter.name }}{{ '}' }}"}
+{% endfor %}
+{% for parameter in method.parameters.body %}
+    params = %{"{{ parameter.name | caseCamel }}" => "{{ '#{' }}{{ parameter.name }}{{ '}' }}"}
+{% endfor %}
+{% for parameter in method.parameters.formData %}
+    params = %{"{{ parameter.name | caseCamel }}" => "{{ '#{' }}{{ parameter.name }}{{ '}' }}"}
+{% endfor %}
+    conf |> Client.call(Client.method_{{ method.method | caseLower }}, path, params, {{ '[' }}{% for key, header in method.headers %}"{{ key }}": "{{ header }}"{% endfor %}{{ ']' }})
+  end
+{% endfor %}
+
+end

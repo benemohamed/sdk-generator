@@ -1,0 +1,41 @@
+defmodule {{spec.title | caseUcfirst}}.MixProject do
+  use Mix.Project
+
+  def project do
+    [
+      app: :{{spec.title | caseLower | caseSnake}},
+      version: "{{ sdk.version }}",
+      elixir: "~> 1.10",
+      start_permanent: Mix.env() == :prod,
+      deps: deps(),
+      package: package(),
+      description: "{{ spec.description }}",
+      docs: [extras: ["README.md"]], # logo: "{{ sdk.logo }}"
+      homepage_url: "{{ spec.contactURL }}",
+      source_url: "{{ spec.github }}"
+    ]
+  end
+
+  def application do
+    [
+      extra_applications: [:logger]
+    ]
+  end
+
+  defp deps do
+    [
+      {:tesla, "~> 1.0.0"},
+      {:jason, "~> 1.0.0"},
+      {:ex_doc, ">= 0.0.0", only: :dev}
+    ]
+  end
+
+    defp package do
+    [
+      name: :{{spec.title | caseLower | caseSnake}},
+      files: ["lib/*", "mix.exs", "README.md", "LICENSE"],
+      maintainers: ["{{ spec.contactName }} {{ spec.contactEmail }}"],
+      licenses: ["{{ spec.licenseName }}"] 
+    ]
+  end
+end

@@ -1,0 +1,4 @@
+client = {{ spec.title | caseUcfirst }}.Client.new("Your_project_ID","Your_Locale_NAME","https://httpbin.org/")
+{:ok, info} = client |> {{ spec.title | caseUcfirst }}.Services.{{ service.name | caseUcfirst }}.{{ method.name | caseCamel }}({% for parameter in method.parameters.all %}{% if parameter.required %}{% if not loop.first %}, {% endif %}{{ parameter | paramExample }}{% endif %}{% endfor %})
+
+IO.inspect info

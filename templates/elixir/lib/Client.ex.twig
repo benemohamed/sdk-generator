@@ -1,0 +1,173 @@
+defmodule {{ spec.title | caseUcfirst }}.Client do
+  use Tesla, docs: false
+
+  plug Tesla.Middleware.JSON
+  plug Tesla.Middleware.KeepRequest
+  plug Tesla.Middleware.Timeout, timeout: 2_000
+
+  @moduledoc since: "{{ sdk.version }}"
+
+  @method_get :get
+
+  def method_get, do: @method_get
+
+  @method_post :post
+
+  def method_post, do: @method_post
+
+  @method_put :put
+
+  def method_put, do: @method_put
+
+  @method_patch :patch
+
+  def method_patch, do: @method_patch
+
+  @method_delete :delete
+
+  def method_delete, do: @method_delete
+
+  @method_head :head
+
+  def method_head, do: @method_head
+
+  @method_options :options
+
+  def method_options, do: @method_options
+
+  @method_connect :connect
+
+  def method_connect, do: @method_connect
+
+  @method_trace :trace
+
+  def method_trace, do: @method_trace
+
+  # Is Self Signed Certificates Allowed?
+  @selfSigned false
+
+  def selfSigned, do: @selfSigned
+
+  @endpoint "{{spec.endpoint}}"
+
+  # Service host name
+  def endpoint, do: @endpoint
+
+  # Global Headers
+  #  Note: Custom headers with the X- prefix are deprecated as of 2012/06/12. See RFC 6648 sp....
+  @header [
+      "x-sdk-version": "{{spec.title | caseDash}}:{{ language.name | caseLower }}:{{ sdk.version }}"
+  ]
+
+  def header, do: @header
+
+
+  defstruct project: String,
+            locale: nil,
+            endpoint: nil,
+            header: nil
+            
+  @doc """
+  SDK constructor.
+
+  ## Parameters
+
+     *  `project` 
+     *  `local`
+     *  `endpoint`
+ 
+  """
+  def new(project, locale, endpoint \\ @endpoint, header \\ @header ) do
+      %{{ spec.title | caseUcfirst }}.Client{
+      project: project,
+      locale: locale,
+      endpoint: endpoint,
+      header: header
+    }
+  end
+
+  @doc """
+  add Header.
+
+  ## Parameters
+
+     *  `this` 
+     *  `key`
+     *  `value`
+ 
+  """
+  def addHeader(this,key , value) do
+    header = ["#{key}": "#{value}"]
+    this.header ++ header
+  end
+
+  @doc """
+  set Project.
+
+  ## Parameters
+
+     *  `this` 
+     *  `value`
+ 
+  """
+  def setProject(this, value) do
+      addHeader(this, "X-Appwrite-Project", "#{value}")
+  end
+
+  @doc """
+  set Locale.
+
+  ## Parameters
+
+     *  `this` 
+     *  `value`
+ 
+  """
+  def setLocale(this, value) do
+      addHeader(this, "X-Appwrite-Locale", "#{value}")
+  end
+
+  @doc """
+  Make an API call
+
+  ## Parameters
+
+     *  `this` 
+     *  `method`
+     *  `url`
+     *  `body`
+     *  `headers`
+
+  """
+  def call(this, method, url, body, headers) do
+    
+    header = ["User-Agent": "appwrite elixir-client", "X-Appwrite-Project": "#{this.project}", "X-Appwrite-Locale": "#{this.locale}"]
+    #req = HTTPotion.request(method, this.endpoint <> url ,Jason.encode!(body),header ++ headers,[]) # MOVE TO Tesla ,  Not really maintained
+    if method == :get  do
+        case Tesla.request(
+            method: method,
+            url: this.endpoint <> url,
+            query: Map.to_list(body),
+            headers: header ++ headers ++ this.header,
+            opts: []
+            ) do
+        {:ok, %Tesla.Env{status: 200, body: body}} -> {:ok, Jason.decode!(body, keys: :atoms)}
+        {:ok, %Tesla.Env{body: body}}              -> {:error, Jason.decode!(body, keys: :atoms)}
+        end
+    else
+        case Tesla.request(
+            method: method, 
+            url: this.endpoint <> url,
+            query: Map.to_list(body),
+            headers: header ++ headers ++ this.header,
+            body: Jason.encode!(body),
+            opts: []
+            ) do
+        {:ok, %Tesla.Env{status: 200, body: body}} -> {:ok, Jason.decode!(body, keys: :atoms)}
+        {:ok, %Tesla.Env{body: body}}              -> {:error, Jason.decode!(body, keys: :atoms)}
+        end
+    end
+    # Tesla.request(method: method, url: this.endpoint <> url,body: body,headers: header ++ headers,opts: [])
+
+  end
+end
